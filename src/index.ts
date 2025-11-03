@@ -1,9 +1,21 @@
-async function main() {
-  console.log('Hello from TypeScript + Node.js!');
-  console.log(`Node version: ${process.version}`);
-}
+import express from 'express';
+import router from './routes/router';
+import dotenv from 'dotenv';
+import cors from 'cors';
+dotenv.config();
+const app = express();
+const port = 3000;
 
-main().catch((error) => {
-  console.error('Error:', error);
-  process.exit(1);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+
+app.use('/api', router);
+
+app.get('/', (req : express.Request, res : express.Response) => {
+  res.send('Hello from Express!');
+});
+
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
 });

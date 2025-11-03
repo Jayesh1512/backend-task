@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>API Tester — /api/token</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:980px;margin:24px auto;padding:0 16px;color:#111}
+    h1{margin:0 0 8px}
+    label{display:block;margin-top:12px;font-weight:600}
+    input[type=text], textarea, select {width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-top:6px;font-size:14px}
+    textarea{min-height:120px;font-family:monospace}
+    .row{display:flex;gap:12px}
+    .row > *{flex:1}
+    button{margin-top:12px;padding:10px 14px;border-radius:8px;border:0;background:#0066ff;color:white;font-weight:600;cursor:pointer}
+    pre{background:#f6f8fa;border:1px solid #e1e4e8;padding:12px;border-radius:6px;overflow:auto}
+    .small{font-size:13px;color:#555}
+    .note{background:#fffbea;border-left:4px solid #ffd33d;padding:10px;margin:8px 0;border-radius:4px}
+  </style>
+</head>
+<body>
+  <h1>API Tester — /api/token</h1>
+  <p class="small">A tiny web UI to test your local endpoints. Note: if you open this file with <code>file://</code> you may hit CORS restrictions. Prefer serving it from a local static server (e.g. <code>npx serve public</code>) or enable CORS in your Express app.</p>
+
+  <div class="note">
+    <strong>Defaults</strong>: Host <code>http://localhost:3000</code>, example token id <code>12345</code>.
+  </div>
+
+  <label>Base URL</label>
+  <input id="base" type="text" value="http://localhost:3000" />
+
+  <div class="row">
+    <div>
+      <label>Endpoint</label>
+      <select id="endpoint">
+        <option value="/api/token/:id/insight" selected>POST /api/token/:id/insight</option>
+        <option value="/api/token/:id">GET /api/token/:id</option>
+      </select>
+    </div>
+    <div>
+      <label>HTTP Method</label>
+      <select id="method">
+        <option>POST</option>
+        <option>GET</option>
+        <option>PUT</option>
+        <option>DELETE</option>
+      </select>
+    </div>
+  </div>
+
+  <label>Token id (replace :id)</label>
+  <input id="id" type="text" value="12345" />
+
+  <label>Headers (one per line, format: Name: value)</label>
+  <textarea id="headers" placeholder="Authorization: Bearer YOUR_TOKEN_HERE\nContent-Type: application/json">Content-Type: application/json</textarea>
+
+  <label>Request body (JSON)</label>
+  <textarea id="body">{
+  "exampleKey": "exampleValue",
+  "vs_currency": "usd",
+  "history_days": 30
+}</textarea>
+
+  <button id="send">Send Request</button>
+  <button id="fillInsight" style="background:#2d9f73;margin-left:8px">Fill insight example</button>
+
+  <h3>Result</h3>
+  <div class="small">Status: <span id="status">—</span></div>
+  <h4>Response headers</h4>
+  <pre id="respHeaders">-</pre>
+  <h4>Response body</h4>
+  <pre id="respBody">-</pre>
+
+  <h4>Equivalent curl</h4>
+  <pre id="curl">-</pre>
+
+  <script>
+    const baseEl = document.getElementById('base');
+    const endpointEl = document.getElementById('endpoint');
+    const idEl = document.getElementById('id');
+    const methodEl = document.getElementById('method');
+    const headersEl = document.getElementById('headers');
+    const bodyEl = document.getElementById('body');
+
+    const sendBtn = document.getElementById('send');
+    const fillInsightBtn = document.getElementById('fillInsight');
+
+    function parseHeaders(text){
+      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+      const obj = {};
+      for(const l of lines){
+        const idx = l.indexOf(':');
+        if(idx === -1) continue;
+        const key = l.slice(0, idx).trim();
+        const val = l.slice(idx+1).trim();
+        obj[key] = val;
+      }
+      return obj;
+    }
+
+    function buildUrl(){
+      const base = baseEl.value.replace(/\/$/, '');
+      const ep = endpointEl.value;
+      const id = encodeURIComponent(idEl.value || '');
+      return (ep.includes(':id') ? ep.replace(':id', id) : ep).startsWith('/') ? base + ep.replace(':id', id) : base + '/' + ep.replace(':id', id);
+    }
+
+    function prettyJSON(text){
+      try{ return JSON.stringify(JSON.parse(text), null, 2) }catch(e){ return text }
+    }
+
+    function buildCurl(url, method, headers, body){
+      let cmd = ['curl -i -X', method, '"'+url+'"'].join(' ');
+      for(const k of Object.keys(headers)){
+        cmd += ' -H ' + '"' + k + ': ' + headers[k].replace(/"/g,'\\\"') + '"';
+      }
+      if(body && method !== 'GET'){
+        const escaped = body.replace(/"/g, '\\\"').replace(/\n/g,' ');
+        cmd += ' -d ' + '"' + escaped + '"';
+      }
+      return cmd;
+    }
+
+    sendBtn.addEventListener('click', async ()=>{
+      const url = buildUrl();
+      const method = methodEl.value || 'POST';
+      const headers = parseHeaders(headersEl.value);
+      let body = bodyEl.value;
+
+      // Try to parse JSON to ensure valid JSON for display
+      try{ if(body && (method !== 'GET' && headers['Content-Type'] && headers['Content-Type'].includes('application/json'))) JSON.parse(body); }catch(e){ if(!confirm('Request body is not valid JSON. Send anyway?')) return; }
+
+      document.getElementById('status').textContent = 'Sending...';
+      document.getElementById('respHeaders').textContent = '-';
+      document.getElementById('respBody').textContent = '-';
+      document.getElementById('curl').textContent = buildCurl(url, method, headers, body);
+
+      try{
+        const opts = { method, headers };
+        if(method !== 'GET'){
+          if(!opts.headers) opts.headers = {};
+          // If content-type not present and body present, set JSON
+          if(body && !Object.keys(opts.headers).some(h=>h.toLowerCase()==='content-type')){
+            opts.headers['Content-Type'] = 'application/json';
+          }
+          // attach body
+          opts.body = body;
+        }
+
+        const resp = await fetch(url, opts);
+        const headersMap = {};
+        for(const pair of resp.headers.entries()) headersMap[pair[0]] = pair[1];
+        document.getElementById('respHeaders').textContent = JSON.stringify(headersMap, null, 2);
+        document.getElementById('status').textContent = resp.status + ' ' + resp.statusText;
+
+        const text = await resp.text();
+        document.getElementById('respBody').textContent = prettyJSON(text);
+
+      }catch(err){
+        document.getElementById('status').textContent = 'Error';
+        document.getElementById('respBody').textContent = '' + err;
+      }
+    });
+
+    fillInsightBtn.addEventListener('click', ()=>{
+      endpointEl.value = '/api/token/:id/insight';
+      methodEl.value = 'POST';
+      idEl.value = 'chainlink';
+      headersEl.value = 'Content-Type: application/json';
+      bodyEl.value = JSON.stringify({ vs_currency: 'usd', history_days: 30 }, null, 2);
+    })
+
+    // Sync method when endpoint changes (common defaults)
+    endpointEl.addEventListener('change', ()=>{
+      if(endpointEl.value.endsWith('/insight')) methodEl.value = 'POST';
+      else methodEl.value = 'GET';
+    });
+  </script>
+</body>
+</html>
