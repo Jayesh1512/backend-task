@@ -1,4 +1,3 @@
-// Purpose: Application entry — configure middleware, views and mount API routes
 import express from 'express';
 import router from './routes/router';
 import dotenv from 'dotenv';

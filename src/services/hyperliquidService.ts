@@ -1,5 +1,5 @@
 // Purpose: Hyperliquid service helpers — fetch user fills, funding, clearinghouse state and compute daily PnL summaries
-import axios from 'axios';
+import axios from "axios";
 interface DailyPnL {
   date: string;
   realized_pnl_usd: number;
@@ -72,17 +72,25 @@ interface ClearinghouseState {
 
 **************************
 */
-async function getUserFills(wallet: string, start: string, end: string): Promise<UserFill[]> {
+async function getUserFills(
+  wallet: string,
+  start: string,
+  end: string
+): Promise<UserFill[]> {
   try {
-    const response = await axios.post('https://api.hyperliquid.xyz/info', {
-      type: 'userFillsByTime',
+    const response = await axios.post("https://api.hyperliquid.xyz/info", {
+      type: "userFillsByTime",
       user: wallet,
       startTime: new Date(start).getTime(),
       endTime: new Date(end).getTime(),
     });
     return response.data;
   } catch (error) {
-    throw new Error(`HyperLiquid API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `HyperLiquid API error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
@@ -95,17 +103,25 @@ async function getUserFills(wallet: string, start: string, end: string): Promise
 
 **************************
 */
-async function getUserFunding(wallet: string, start: string, end: string): Promise<UserFunding[]> {
+async function getUserFunding(
+  wallet: string,
+  start: string,
+  end: string
+): Promise<UserFunding[]> {
   try {
-    const response = await axios.post('https://api.hyperliquid.xyz/info', {
-      type: 'userFunding',
+    const response = await axios.post("https://api.hyperliquid.xyz/info", {
+      type: "userFunding",
       user: wallet,
       startTime: new Date(start).getTime(),
       endTime: new Date(end).getTime(),
     });
     return response.data;
   } catch (error) {
-    throw new Error(`HyperLiquid API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `HyperLiquid API error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
@@ -118,15 +134,21 @@ async function getUserFunding(wallet: string, start: string, end: string): Promi
 
 **************************
 */
-async function getClearinghouseState(wallet: string): Promise<ClearinghouseState> {
+async function getClearinghouseState(
+  wallet: string
+): Promise<ClearinghouseState> {
   try {
-    const response = await axios.post('https://api.hyperliquid.xyz/info', {
-      type: 'clearinghouseState',
+    const response = await axios.post("https://api.hyperliquid.xyz/info", {
+      type: "clearinghouseState",
       user: wallet,
     });
     return response.data;
   } catch (error) {
-    throw new Error(`HyperLiquid API error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `HyperLiquid API error: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
@@ -154,8 +176,12 @@ export async function calculateDailyPnL(
   const startDate = new Date(start);
   const endDate = new Date(end);
 
-  for (let dt = new Date(startDate); dt <= endDate; dt.setDate(dt.getDate() + 1)) {
-    const date = dt.toISOString().split('T')[0];
+  for (
+    let dt = new Date(startDate);
+    dt <= endDate;
+    dt.setDate(dt.getDate() + 1)
+  ) {
+    const date = dt.toISOString().split("T")[0];
     dailyPnL[date] = {
       date,
       realized_pnl_usd: 0,
@@ -167,8 +193,8 @@ export async function calculateDailyPnL(
     };
   }
 
-  for (const fill of fills) {
-    const date = new Date(fill.time).toISOString().split('T')[0];
+  for (const i of fills) {
+    const date = new Date(i.time).toISOString().split("T")[0];
     if (!dailyPnL[date]) {
       dailyPnL[date] = {
         date,
@@ -181,22 +207,24 @@ export async function calculateDailyPnL(
       };
     }
 
-    dailyPnL[date].realized_pnl_usd += parseFloat(fill.closedPnl);
-    dailyPnL[date].fees_usd += parseFloat(fill.fee);
+    dailyPnL[date].realized_pnl_usd += parseFloat(i.closedPnl);
+    dailyPnL[date].fees_usd += parseFloat(i.fee);
   }
 
   for (const fund of funding) {
-    const date = new Date(fund.time).toISOString().split('T')[0];
+    const date = new Date(fund.time).toISOString().split("T")[0];
     if (dailyPnL[date]) {
       dailyPnL[date].funding_usd += parseFloat(fund.usdc);
     }
   }
 
   if (clearinghouseState && clearinghouseState.assetPositions) {
-    const lastDay = new Date(end).toISOString().split('T')[0];
+    const lastDay = new Date(end).toISOString().split("T")[0];
     if (dailyPnL[lastDay]) {
       for (const position of clearinghouseState.assetPositions) {
-        dailyPnL[lastDay].unrealized_pnl_usd += parseFloat(position.position.unrealizedPnl);
+        dailyPnL[lastDay].unrealized_pnl_usd += parseFloat(
+          position.position.unrealizedPnl
+        );
       }
     }
   }
@@ -209,7 +237,11 @@ export async function calculateDailyPnL(
       acc.total_unrealized_usd += day.unrealized_pnl_usd;
       acc.total_fees_usd += day.fees_usd;
       acc.total_funding_usd += day.funding_usd;
-      acc.net_pnl_usd += day.realized_pnl_usd + day.unrealized_pnl_usd - day.fees_usd + day.funding_usd;
+      acc.net_pnl_usd +=
+        day.realized_pnl_usd +
+        day.unrealized_pnl_usd -
+        day.fees_usd +
+        day.funding_usd;
       return acc;
     },
     {
