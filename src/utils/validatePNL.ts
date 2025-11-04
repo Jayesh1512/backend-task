@@ -52,5 +52,15 @@ export default function validatePNL(
   start: string,
   end: string
 ): { valid: boolean; error?: string } {
-  return isValidAddress(address) && validateDateRange(start, end);
+  const addressValidation = isValidAddress(address);
+  if (!addressValidation.valid) {
+    return addressValidation;
+  }
+  
+  const dateValidation = validateDateRange(start, end);
+  if (!dateValidation.valid) {
+    return dateValidation;
+  }
+  
+  return { valid: true };
 }
