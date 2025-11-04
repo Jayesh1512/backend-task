@@ -1,3 +1,4 @@
+// Purpose: Hyperliquid service helpers — fetch user fills, funding, clearinghouse state and compute daily PnL summaries
 import axios from 'axios';
 interface DailyPnL {
   date: string;
@@ -62,6 +63,15 @@ interface ClearinghouseState {
   }[];
 }
 
+/**
+**************************
+@params wallet: string, start: string, end: string
+@return Promise<UserFill[]>
+
+[FUNCTION] : Fetch user fills from the HyperLiquid API within the provided date range.
+
+**************************
+*/
 async function getUserFills(wallet: string, start: string, end: string): Promise<UserFill[]> {
   try {
     const response = await axios.post('https://api.hyperliquid.xyz/info', {
@@ -76,6 +86,15 @@ async function getUserFills(wallet: string, start: string, end: string): Promise
   }
 }
 
+/**
+**************************
+@params wallet: string, start: string, end: string
+@return Promise<UserFunding[]>
+
+[FUNCTION] : Fetch user funding records from the HyperLiquid API within the provided date range.
+
+**************************
+*/
 async function getUserFunding(wallet: string, start: string, end: string): Promise<UserFunding[]> {
   try {
     const response = await axios.post('https://api.hyperliquid.xyz/info', {
@@ -90,6 +109,15 @@ async function getUserFunding(wallet: string, start: string, end: string): Promi
   }
 }
 
+/**
+**************************
+@params wallet: string
+@return Promise<ClearinghouseState>
+
+[FUNCTION] : Fetch the clearinghouse state for a given wallet (used to compute unrealized PnL/equity).
+
+**************************
+*/
 async function getClearinghouseState(wallet: string): Promise<ClearinghouseState> {
   try {
     const response = await axios.post('https://api.hyperliquid.xyz/info', {
@@ -102,6 +130,15 @@ async function getClearinghouseState(wallet: string): Promise<ClearinghouseState
   }
 }
 
+/**
+**************************
+@params wallet: string, start: string, end: string
+@return Promise<{ daily: DailyPnL[]; summary: PnLSummary }>
+
+[FUNCTION] : Aggregate fills, funding and clearinghouse data to compute per-day PnL items and a summary for the date range.
+
+**************************
+*/
 export async function calculateDailyPnL(
   wallet: string,
   start: string,

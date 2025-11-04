@@ -1,3 +1,4 @@
+// Purpose: AI service wrapper — build prompts and call Google Gemini to generate token insights
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface MarketData {
@@ -24,9 +25,18 @@ interface GenerateAIResponseParams {
     apiKey?: string;
 }
 
+/**
+**************************
+@params params: GenerateAIResponseParams
+@return Promise<AIInsight>
+
+[FUNCTION] : Build a prompt from token and market data, call the Gemini model and parse the JSON insight response (reasoning + sentiment).
+
+**************************
+*/
 export async function generateAIResponse(params: GenerateAIResponseParams): Promise<AIInsight> {
     const { tokenInfo, marketData, priceHistoryText = '', apiKey } = params;
-
+    const MODEL_NAME : string = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     // Default fallback insight
     const defaultInsight: AIInsight = {
         reasoning: 'AI analysis unavailable',
@@ -41,7 +51,7 @@ export async function generateAIResponse(params: GenerateAIResponseParams): Prom
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: MODEL_NAME });
 
         const prompt = `You are a cryptocurrency market analyst. Analyze the following token data and provide insights.
 Token: ${tokenInfo.name} (${tokenInfo.symbol.toUpperCase()})

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Tester</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>API Testing Console</h1>
+      <p class="subtitle">Test your endpoints with ease</p>
+    </header>
+
+    <main>
+      <aside class="sidebar">
+        <div class="api-selector">
+          <h3>Select API</h3>
+          <label class="radio-card">
+            <input type="radio" name="api" value="token" checked>
+            <div class="radio-content">
+              <span class="radio-title">Token Insight</span>
+              <span class="radio-desc">Get crypto token analytics</span>
+            </div>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="api" value="pnl">
+            <div class="radio-content">
+              <span class="radio-title">Hyperliquid PNL</span>
+              <span class="radio-desc">Fetch wallet P&L data</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="endpoints">
+          <h3>Available Endpoints</h3>
+          <div class="endpoint-item">
+            <code class="method post">POST</code>
+            <code class="path">/api/token/:id/insight</code>
+          </div>
+          <div class="endpoint-item">
+            <code class="method get">GET</code>
+            <code class="path">/api/hyperliquid/:wallet/pnl</code>
+          </div>
+        </div>
+      </aside>
+
+      <section class="tester">
+        <!-- Token Insight Form -->
+        <form id="tokenForm" class="api-form active">
+          <div class="form-header">
+            <h2>Token Insight API</h2>
+            <span class="badge">POST</span>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="token-id">Token ID *</label>
+              <input 
+                type="text" 
+                id="token-id" 
+                name="id" 
+                placeholder="e.g., bitcoin" 
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="vs-currency">VS Currency</label>
+              <input 
+                type="text" 
+                id="vs-currency" 
+                name="vs_currency" 
+                placeholder="e.g., usd"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="history-days">History Days</label>
+              <input 
+                type="number" 
+                id="history-days" 
+                name="history_days" 
+                placeholder="e.g., 30"
+              >
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <span>Send Request</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3L13 8L8 13M13 8H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Hyperliquid PNL Form -->
+        <form id="pnlForm" class="api-form">
+          <div class="form-header">
+            <h2>Hyperliquid PNL API</h2>
+            <span class="badge get">GET</span>
+          </div>
+          
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="wallet">Wallet Address *</label>
+              <input 
+                type="text" 
+                id="wallet" 
+                name="wallet" 
+                placeholder="Enter wallet address" 
+                required
+              >
+            </div>
+
+            <!-- Date-only inputs (YYYY-MM-DD) -->
+
+            <div class="form-group">
+              <label for="startDate">Start Date *</label>
+              <input 
+                type="date" 
+                id="startDate" 
+                name="start" 
+                placeholder="YYYY-MM-DD" 
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="endDate">End Date *</label>
+              <input 
+                type="date" 
+                id="endDate" 
+                name="end" 
+                placeholder="YYYY-MM-DD" 
+                required
+              >
+            </div>
+
+            <!-- Unix timestamp inputs removed — date format only -->
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <span>Send Request</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3L13 8L8 13M13 8H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Response Area -->
+        <div class="response-section">
+          <div class="response-header">
+            <h3>Response</h3>
+            <button id="clearBtn" class="btn-secondary">Clear</button>
+          </div>
+          <pre id="responseArea">{ }</pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Built for testing RESTful APIs • Use responsibly</p>
+    </footer>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

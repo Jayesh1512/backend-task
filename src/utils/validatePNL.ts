@@ -1,3 +1,14 @@
+// Purpose: Validation utilities for Hyperliquid PNL requests (address and date range checks)
+
+/**
+**************************
+@params address: string
+@return { valid: boolean; error?: string }
+
+[FUNCTION] : Validate that the provided address is a valid 0x-prefixed Ethereum-like address.
+
+**************************
+*/
 function isValidAddress(address: string): { valid: boolean; error?: string } {
   if (!address || typeof address !== "string") {
     return { valid: false, error: "Invalid address format" };
@@ -8,6 +19,15 @@ function isValidAddress(address: string): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
+/**
+**************************
+@params dateString: string
+@return boolean
+
+[FUNCTION] : Check that a string is a valid date in YYYY-MM-DD format.
+
+**************************
+*/
 function isValidDateString(dateString: string): boolean {
   if (!dateString || typeof dateString !== "string") {
     return false;
@@ -21,6 +41,15 @@ function isValidDateString(dateString: string): boolean {
 
 
 
+/**
+**************************
+@params start: string, end: string
+@return { valid: boolean; error?: string }
+
+[FUNCTION] : Validate that start and end are valid YYYY-MM-DD strings and represent a logical date range (start <= end, start not in future).
+
+**************************
+*/
 function validateDateRange(
   start: string,
   end: string
@@ -47,6 +76,15 @@ function validateDateRange(
   return { valid: true };
 }
 
+/**
+**************************
+@params address: string, start: string, end: string
+@return { valid: boolean; error?: string }
+
+[FUNCTION] : Validate address and date range for a PNL request by delegating to helper validators.
+
+**************************
+*/
 export default function validatePNL(
   address: string,
   start: string,

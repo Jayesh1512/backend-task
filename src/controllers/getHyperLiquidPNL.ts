@@ -1,7 +1,17 @@
+// Purpose: Controller for Hyperliquid PNL endpoint — validates request and returns calculated daily PnL and summary
 import express from "express";
 import validatePNL from "../utils/validatePNL";
 import { calculateDailyPnL } from "../services/hyperliquidService";
 
+/**
+**************************
+@params req: express.Request, res: express.Response, next: express.NextFunction
+@return Promise<void>
+
+[FUNCTION] : Validate wallet and date range, call hyperliquid service to calculate daily PnL, and respond with results or appropriate error status.
+
+**************************
+*/
 export async function getHyperliquidPNL(
   req: express.Request,
   res: express.Response,

@@ -1,3 +1,4 @@
+// Purpose: Controller for token insight endpoints — fetches token metadata, market data and generates AI insights
 import express from 'express';
 import { generateAIResponse } from '../services/aiService';
 
@@ -25,12 +26,21 @@ interface MarketChartData {
     total_volumes?: [number, number][];
 }
 
+/**
+**************************
+@params req: express.Request, res: express.Response
+@return Promise<void>
+
+[FUNCTION] : Fetch token metadata and market chart from CoinGecko, build market summary and request an AI insight; respond with combined JSON.
+
+**************************
+*/
 export async function getTokenInsights(req: express.Request, res: express.Response) {
     const tokenId = req.params.id;
     const requestBody: TokenInsightRequest = req.body || {};
     const vs_currency = requestBody.vs_currency || 'usd';
     const history_days = requestBody.history_days || 30;
-    
+    const MODEL_NAME : string = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     const COINGECKO_API_KEY = process.env.COINGECKO_DEMO_API_KEY;
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -107,7 +117,7 @@ export async function getTokenInsights(req: express.Request, res: express.Respon
             },
             model: {
                 provider: 'google',
-                model: 'gemini-1.5-flash'
+                model: `${MODEL_NAME}-flash`
             }
         };
 
