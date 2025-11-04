@@ -1,29 +1,4 @@
-interface DailyPnL {
-  date: string;
-  realized_pnl_usd: number;
-  unrealized_pnl_usd: number;
-  fees_usd: number;
-  funding_usd: number;
-  net_pnl_usd: number;
-  equity_usd: number;
-}
-
-interface PnLSummary {
-  total_realized_usd: number;
-  total_unrealized_usd: number;
-  total_fees_usd: number;
-  total_funding_usd: number;
-  net_pnl_usd: number;
-}
-
-interface Diagnostics {
-  data_source: string;
-  last_api_call: string;
-  notes: string;
-}
-
 import axios from 'axios';
-
 interface DailyPnL {
   date: string;
   realized_pnl_usd: number;
