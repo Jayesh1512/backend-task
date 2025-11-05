@@ -1,4 +1,4 @@
-# Backend Task — API Tester
+# Dapplooker Backend Task — API Tester
 
 A small Express + TypeScript project that exposes two API endpoints and serves a server-side rendered testing UI at `/` (EJS). Use the UI to test endpoints or call the endpoints directly (curl/Postman).
 
