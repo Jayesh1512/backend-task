@@ -9,7 +9,7 @@
 
 **************************
 */
-function isValidAddress(address: string): { valid: boolean; error?: string } {
+export function isValidAddress(address: string): { valid: boolean; error?: string } {
   if (!address || typeof address !== "string") {
     return { valid: false, error: "Invalid address format" };
   }
@@ -28,7 +28,7 @@ function isValidAddress(address: string): { valid: boolean; error?: string } {
 
 **************************
 */
-function isValidDateString(dateString: string): boolean {
+export function isValidDateString(dateString: string): boolean {
   if (!dateString || typeof dateString !== "string") {
     return false;
   }
@@ -50,7 +50,7 @@ function isValidDateString(dateString: string): boolean {
 
 **************************
 */
-function validateDateRange(
+export function validateDateRange(
   start: string,
   end: string
 ): { valid: boolean; error?: string } {
