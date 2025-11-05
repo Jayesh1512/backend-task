@@ -2,6 +2,7 @@
 import express from "express";
 import validatePNL from "../utils/validatePNL";
 import { calculateDailyPnL } from "../services/hyperliquidService";
+import pruneZeros from "../utils/pruneZeros";
 
 /**
 **************************
@@ -44,7 +45,7 @@ export async function getHyperliquidPNL(
 
     const { daily, summary } = await calculateDailyPnL(wallet, start, end);
 
-    res.json({
+    const response = {
       wallet,
       start,
       end,
@@ -55,7 +56,10 @@ export async function getHyperliquidPNL(
         last_api_call: new Date().toISOString(),
         notes: "PnL calculated using daily close prices",
       },
-    });
+    };
+
+    const pruned = pruneZeros(response) ?? {};
+    res.json(pruned);
   } catch (error) {
     console.error("Error fetching PnL:", error);
 

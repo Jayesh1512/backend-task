@@ -36,10 +36,14 @@ interface MarketChartData {
 **************************
 */
 export async function getTokenInsights(req: express.Request, res: express.Response) {
-    const tokenId = req.params.id;
+    var tokenId = req.params.id;
+    tokenId = tokenId.toLowerCase();
     const requestBody: TokenInsightRequest = req.body || {};
-    const vs_currency = requestBody.vs_currency || 'usd';
+
+    var vs_currency = requestBody.vs_currency || 'usd';
+    vs_currency = vs_currency.toLowerCase();
     const history_days = requestBody.history_days || 30;
+
     const MODEL_NAME : string = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     const COINGECKO_API_KEY = process.env.COINGECKO_DEMO_API_KEY;
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -65,10 +69,17 @@ export async function getTokenInsights(req: express.Request, res: express.Respon
 
         const metadata = (await metadataResponse.json()) as CoinGeckoData;
 
-        const marketData = {
-            current_price_usd: metadata.market_data?.current_price?.[vs_currency] || 0,
-            market_cap_usd: metadata.market_data?.market_cap?.[vs_currency] || 0,
-            total_volume_usd: metadata.market_data?.total_volume?.[vs_currency] || 0,
+        const priceValue = metadata.market_data?.current_price?.[vs_currency] || 0;
+        const currentPriceKey = `current_price_${vs_currency}`;
+        const marketCapValue = metadata.market_data?.market_cap?.[vs_currency] || 0;
+        const totalVolumeValue = metadata.market_data?.total_volume?.[vs_currency] || 0;
+        const marketCapKey = `market_cap_${vs_currency}`;
+        const totalVolumeKey = `total_volume_${vs_currency}`;
+
+        const marketData: any = {
+            [currentPriceKey]: priceValue,
+            [marketCapKey]: marketCapValue,
+            [totalVolumeKey]: totalVolumeValue,
             price_change_percentage_24h: metadata.market_data?.price_change_percentage_24h || 0
         };
 
@@ -117,7 +128,7 @@ export async function getTokenInsights(req: express.Request, res: express.Respon
             },
             model: {
                 provider: 'google',
-                model: `${MODEL_NAME}-flash`
+                model: `${MODEL_NAME}`
             }
         };
 

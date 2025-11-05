@@ -6,7 +6,6 @@ import path from 'path';
 import requestLogger from './middleware/requestLogger';
 dotenv.config();
 const app = express();
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 // body parsing and CORS
 app.use(express.json());
