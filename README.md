@@ -221,6 +221,49 @@ The application has a request logging middleware that logs each incoming request
 
 ---
 
+## External API calls made by this project (mapping to code)
+
+This section explains which external APIs the server calls, why, and where that logic lives in the codebase. It helps when you need to add mocks, replace providers, or troubleshoot failures.
+
+- Token Insight flow (POST /api/token/:id/insight)
+  - What it does: Fetch token metadata and market price history, then generate a short AI-powered insight.
+  - External API calls:
+    - CoinGecko (https://api.coingecko.com):
+      - endpoints used: `coins/{id}` (token metadata) and `coins/{id}/market_chart` (price history)
+      - code locations: `src/controllers/getTokenInsights.ts` (controller) and helper calls inside `src/services/*` as implemented.
+      - purpose: get current price, market cap, total volume and recent price series used to build the AI prompt and the `token.market_data` response.
+    - Google Generative AI (Gemini) via `@google/generative-ai`:
+      - endpoint used: Generative Models `generateContent` (model configurable via `GEMINI_MODEL` env var)
+      - code location: `src/services/aiService.ts` (function `generateAIResponse`)
+      - purpose: produce a small JSON insight (reasoning + sentiment) from the market facts. If `GEMINI_API_KEY` is not provided or the call fails, the service returns a safe default insight.
+
+- HyperLiquid PNL flow (GET /api/hyperliquid/:wallet/pnl)
+  - What it does: Collect fills, funding events and clearinghouse state for the wallet between start/end dates and compute per-day PnL and a summary.
+  - External API calls (to `https://api.hyperliquid.xyz/info`):
+    - `type: 'userFillsByTime'` — fetch fills in the date range (code: `getUserFills`)
+    - `type: 'userFunding'` — fetch funding events in the date range (code: `getUserFunding`)
+    - `type: 'clearinghouseState'` — fetch current positions/unrealized PnL (code: `getClearinghouseState`)
+    - Code location: `src/services/hyperliquidService.ts` (functions above) and aggregation logic in `calculateDailyPnL`.
+    - purpose: fills and funding are aggregated per-day to build `daily` entries; clearinghouse state populates unrealized PnL for the last day; `summary` is the aggregated totals.
+
+- In-memory / internal behavior and post-processing
+  - `src/controllers/getHyperLiquidPNL.ts` (controller) calls `calculateDailyPnL` and then prunes the response to remove unhelpful values (zeros/nulls) before returning JSON to clients. The pruning logic lives in `src/utils/pruneZeros.ts`.
+  - Why pruning: some upstream fields may contain non-numeric text or NaN which serializes to `null` in JSON — pruning removes these zero-like or absent values for a cleaner response.
+
+Error handling and fallbacks
+- External API failures are handled and surfaced as appropriate HTTP error codes:
+  - CoinGecko / HyperLiquid issues typically lead to 502/503 with contextual `error` and `details` fields.
+  - The AI service (`GEMINI_API_KEY`) is optional: when missing or when the AI call fails the code returns a deterministic fallback insight so the endpoint still responds.
+
+Environment variables relevant to external calls
+- `GEMINI_API_KEY` — required to call Google Generative AI (Gemini). If absent, the AI service returns a default insight.
+- `GEMINI_MODEL` — optional model name (default: `gemini-2.5-flash`).
+- `COINGECKO_DEMO_API_KEY` — optional, if you integrate a paid/demo CoinGecko key.
+
+If you'd like, I can also add a short sequence diagram or an integration test that fully mocks these external endpoints (using `nock`) so CI runs are deterministic.
+
+---
+
 ## Troubleshooting
 
 - If the UI doesn't load, ensure server compiled or `npm run dev` is running.
@@ -239,3 +282,35 @@ Small project — open a PR or send a patch. If you'd like, I can:
 ---
 
 If you want, I can now start the server and verify the UI and endpoints end-to-end and paste the console output here. Just tell me to proceed.
+
+---
+
+## Docker
+
+This project includes a Dockerfile and a docker-compose file for easy containerized runs.
+
+Build the production image:
+
+```bash
+docker build -t backend-task:latest .
+```
+
+Run the image:
+
+```bash
+docker run --rm -p 3000:3000 \
+  -e PORT=3000 \
+  -e NODE_ENV=production \
+  backend-task:latest
+```
+
+Or use docker-compose for convenience:
+
+```bash
+docker-compose up --build
+```
+
+Notes:
+- The Docker image compiles TypeScript during build (multi-stage) and runs the compiled `dist/index.js`.
+- The `.env` file is excluded from the image; pass secrets via environment variables when running the container.
+
