@@ -41,7 +41,6 @@ npm install
 Create a `.env` file in the project root or set env vars in your environment. Typical variables:
 
 ```env
-PORT=3000
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-2.5-flash
 COINGECKO_DEMO_API_KEY=optional_key
@@ -269,15 +268,6 @@ If you'd like, I can also add a short sequence diagram or an integration test th
 - If the UI doesn't load, ensure server compiled or `npm run dev` is running.
 - If AI insights appear as a default fallback, ensure `GEMINI_API_KEY` is set.
 - If CoinGecko returns rate-limited responses, consider adding a valid `COINGECKO_DEMO_API_KEY` or respecting rate limits.
-
----
-
-## Contributing
-
-Small project — open a PR or send a patch. If you'd like, I can:
-- Add structured JSON logging (pino/winston)
-- Add automated tests for services and controllers
-- Add linter and commit hooks
 
 ---
 
